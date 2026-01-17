@@ -1,0 +1,28 @@
+# --- System & Python Basics ---
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- Virtual Environment (NEVER upload this) ---
+# Assuming your venv is named 'docksentry' based on your list
+docksentry/
+venv/
+env/
+
+# --- Build & Distribution ---
+docksentry.egg-info/
+dist/
+build/
+
+# --- Testing Artifacts ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Local & Sensitive Files ---
+# Ignore local test dumps so you don't upload massive files
+test_files/
+
+# Ignore environment variables (Very important for your security tool!)
+.env
+.env.local
