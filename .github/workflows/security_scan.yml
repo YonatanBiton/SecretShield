@@ -25,4 +25,4 @@ jobs:
 
       - name: Run SecretShield
         run: |
-          python src/main.py scan .
+          python src/main.py .
