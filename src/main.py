@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import subprocess
 import os
-
+from reporter import generate_html_report
 app = typer.Typer()
 console = Console()
 
@@ -71,9 +71,9 @@ def scan(
     else:
         if html:
             # Placeholder for Phase 2 (HTML Generation)
-            console.print(f"[yellow]📝 HTML reporting coming soon! Found {len(findings)} issues.[/yellow]")
+            report_path = generate_html_report(findings, target)
             # For now, we still print the table so you see results
-            print_table(findings, target)
+            console.print(f"HTML Report generated: {report_path}")
         else:
             print_table(findings, target)
 
