@@ -82,6 +82,11 @@ def scan(
         # UX: Simple text, no spinner needed for fast deletion
         shutil.rmtree(scan_path, ignore_errors=True)
         console.print("[dim]🧹 Cleanup complete.[/dim]")
+    if len(findings) > 0:
+        console.print(f"Pipeline Faild: Found {len(findings)} security issues.")
+        raise typer.Exit(code=1)
+    else:
+        raise typer.Exit(code=0)
 
 def print_table(findings, target):
     table = Table(title=f"Security Report: {target}")
