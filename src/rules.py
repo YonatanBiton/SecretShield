@@ -4,17 +4,43 @@ import math
 
 # High Fidelity Patterns (These are almost 99% sure to be secrets)
 SPECIFIC_PATTERNS = {
-    "AWS Access Key": r'(AKIA[0-9A-Z]{16})',
-    "Google API Key": r'(AIza[0-9A-Za-z\\-_]{35})',
-    "Slack Token": r'(xox[baprs]-([0-9a-zA-Z]{10,48}))',
-    "GitHub Personal Access Token": r'(ghp_[0-9a-zA-Z]{36})',
-    "Stripe Live Key": r'(sk_live_[0-9a-zA-Z]{20,})',
-    "Private Key Header": r'-----BEGIN [A-Z]+ PRIVATE KEY-----'
+    "AWS": r'(AKIA[0-9A-Z]{16})',
+    "Google_API": r'(AIza[0-9A-Za-z\\-_]{35})',
+    "Slack_Token": r'(xox[baprs]-([0-9a-zA-Z]{10,48}))',
+    "GitHub": r'(ghp_[0-9a-zA-Z]{36})',
+    "Stripe": r'(sk_live_[0-9a-zA-Z]{20,})',
+    "Private Key Header": r'-----BEGIN [A-Z]+ PRIVATE KEY-----',
+    "DigitalOcean": r'(dop_v1_[0-9a-fA-F]{64})',
+    "GitLab" : r'(glpat-[0-9a-zA-Z\-]{20})'
 }
 
 # Generic Suspicious Variable Names
 # We look for these words in the variable NAME, not the value.
 SUSPICIOUS_NAMES = r'(?i)(password|secret|token|api_key|access_key|auth_key|credentials)'
+
+def find_aws_secret_candidate(lines, index):
+    """
+    Scans nearby lines (window of +/- 4 lines) for a potential AWS Secret Key.
+    An AWS Secret Key is exactly 40 characters long, usually alphanumeric + / + +.
+    """
+    start = max(0, index - 4)
+    end = min(len(lines), index + 5)
+    
+    # Regex for a standard AWS Secret Key (40 chars)
+    # It looks for assignments like: "secret_key" = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    secret_pattern = r'(?i)(secret|key).*?[:=]\s*["\']?([A-Za-z0-9/+=]{40})["\']?'
+    
+    for i in range(start, end):
+        # Don't check the line that has the AKIA ID (it's not there)
+        if i == index: 
+            continue
+            
+        line = lines[i]
+        match = re.search(secret_pattern, line)
+        if match:
+            return match.group(2) # Return the found secret string
+            
+    return None
 
 def calculate_shannon_entropy(data):
     """
@@ -65,18 +91,46 @@ def is_high_entropy(value):
         # Standard strings (Base64 / Ascii)
         return entropy > 4.5
 
-def check_secrets(line, line_num):
+def check_secrets(line, line_num, all_lines):
     """
     Smart detection:
     1. Checks High-Fidelity patterns first (Critical).
     2. Checks Generic patterns ONLY if the value looks like a real secret (Heuristic).
     """
     
-    # --- Layer 1: Specific Patterns (Critical) ---
+   # --- Layer 1: Specific Patterns (Critical) ---
     for secret_type, pattern in SPECIFIC_PATTERNS.items():
-        if re.search(pattern, line):
+        match = re.search(pattern, line) # Capture the match object
+        if match:
+            # Extract the actual secret string found (e.g., "sk_live_123...")
+            # We assume the regex pattern captures the key in group 0 or 1
+            detected_value = match.group(0) 
+            # Special handling for AWS (We usually capture the ID, AKIA...)
+            if "AWS" in secret_type:
+                if all_lines:
+                    partner_secret = find_aws_secret_candidate(all_lines, line_num - 1)
+                    if partner_secret:
+                        return {
+                            "line": line_num,
+                            "type": "AWS_PAIR",
+                            "key_id": detected_value,
+                            "secret_key": partner_secret,
+                            "severity": "CRITICAL",
+                            "message": "Full AWS Credential pair found (ID + Secret)!"
+                        }
+                return {
+                    "line": line_num,
+                    "type": "AWS_ID", # Special tag for AWS
+                    "key_id": detected_value,
+                    "severity": "CRITICAL",
+                    "message": f"{secret_type} ID found ({detected_value}) - Couldn't find the secret key"
+                }
+
+            # Standard handling for single-string keys (Stripe, GitHub)
             return {
                 "line": line_num,
+                "type": secret_type, # e.g., "STRIPE", "GITHUB_TOKEN"
+                "secret": detected_value, # The actual key to verify!
                 "severity": "CRITICAL",
                 "message": f"{secret_type} found. This is a high-confidence leak."
             }
