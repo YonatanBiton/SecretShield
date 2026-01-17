@@ -118,7 +118,7 @@ def scan_directory(folder_path):
                             else:
                                 res['message'] += f"[orange]{verify_msg}[/orange]"
                          # We found a secret in a code file!
-                        res['file'] = filename # Capture filename
+                        res['file'] = os.path.relpath(full_path, folder_path) # Capture filename
                         findings.append(res)
             except Exception:
                 continue # Skip files we can't open
