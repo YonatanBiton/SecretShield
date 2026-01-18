@@ -64,17 +64,14 @@ def is_high_entropy(value):
     """
     # 1. Length Check (Still essential)
     if len(value) < 8:
-        print("less then 8")
         return False
         
     # 2. Dynamic Value & Placeholder Checks (Keep these!)
     if value.strip().startswith(("$", "{{", "<%", "openssl", "base64")):
-        print("start with dynamic")
         return False
 
     upper_val = value.upper()
     if "EXAMPLE" in upper_val or "CHANGE_ME" in upper_val:
-        print("has example")
         return False
         
     # 3. THE NEW MATH LOGIC
