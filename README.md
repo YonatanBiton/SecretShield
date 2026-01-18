@@ -1,4 +1,4 @@
-# 🔐 SecretShield
+#  SecretShield
 
 **SecretShield** is an advanced security scanner designed to detect **hardcoded secrets, API keys, and credentials** within source code repositories.
 
@@ -8,17 +8,17 @@ SecretShield is built as a **resume-grade DevSecOps project**, demonstrating sec
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-- 🔍 **High-Fidelity Secret Detection**
-- 🧠 **Context-Aware Scanning**
-- 🔐 **Active Verification Engine**
-- 📊 **Professional HTML Reporting**
-- ⚙️ **DevSecOps Ready**
+-  **High-Fidelity Secret Detection**
+-  **Context-Aware Scanning**
+-  **Active Verification Engine**
+-  **Professional HTML Reporting**
+-  **DevSecOps Ready**
 
 ---
 
-## 🛠️ Supported Providers
+##  Supported Providers
 
 | Provider | Detection Method | Active Verification |
 |--------|------------------|---------------------|
@@ -33,7 +33,7 @@ SecretShield is built as a **resume-grade DevSecOps project**, demonstrating sec
 
 ---
 
-## 🧠 How It Works
+##  How It Works
 
 1. File Crawling  
 2. Pattern Matching (Layer 1)  
@@ -43,7 +43,7 @@ SecretShield is built as a **resume-grade DevSecOps project**, demonstrating sec
 
 ---
 
-## 📦 Installation
+##  Installation
 
 ### Requirements
 - Python 3.10+
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Usage
+##  Usage
 
 ```bash
 python src/main.py <folder_path>
@@ -66,9 +66,10 @@ python src/main.py <folder_or_repo> --html
 
 ---
 
-## 📊 HTML Report
+##  HTML Report
 
-> Screenshot placeholder
+<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/c609aafd-5bd9-407e-a91c-8cbd41a84c66" />
+
 
 ```text
 [ Screenshot: SecretShield HTML Report ]
@@ -76,7 +77,7 @@ python src/main.py <folder_or_repo> --html
 
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```text
 SecretShield/
@@ -87,7 +88,7 @@ SecretShield/
 
 ---
 
-## 🎯 Use Cases
+##  Use Cases
 
 - Secure code reviews
 - CI/CD scanning
@@ -95,13 +96,18 @@ SecretShield/
 
 ---
 
-## 👤 Author
+##  Author
 
 Yonatan Biton  
 https://github.com/YonatanBiton
 
 ---
 
-## 📄 License
+##  License
 
-Educational & defensive security use.
+License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Disclaimer: This tool is intended for security testing of repositories you own or have explicit permission to scan. Do not use this tool on unauthorized codebases.
+
