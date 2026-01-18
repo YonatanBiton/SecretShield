@@ -2,6 +2,35 @@ import os
 import re
 from datetime import datetime
 
+
+def generate_github_summary(findings):
+    """
+    Writes a Markdown summary specifically for GitHub Actions UI.
+    """
+    # Get the special GitHub output file path
+    github_summary_path = os.getenv('GITHUB_STEP_SUMMARY')
+    
+    if not github_summary_path:
+        return # We are not running in GitHub Actions
+
+    # Create Markdown Table
+    md_content = "# SecretShield Scan Results\n\n"
+    
+    if not findings:
+        md_content += "**No secrets found. Great job!**"
+    else:
+        md_content += f"Found **{len(findings)}** potential secrets.\n\n"
+        md_content += "| Severity | Type | File | Line | Status |\n"
+        md_content += "| :--- | :--- | :--- | :--- | :--- |\n"
+        
+        for f in findings:
+            # Format the row
+            md_content += f"| **{f['severity']}** | {f['type']} | `{f['file']}` | {f['line']} | {icon} |\n"
+
+    # Write to the GitHub environment file
+    with open(github_summary_path, "a", encoding="utf-8") as f:
+        f.write(md_content)
+
 def clean_and_convert_markup(text):
     """
     Converts Rich terminal tags to HTML Bootstrap badges/spans.

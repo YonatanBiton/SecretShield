@@ -52,7 +52,7 @@ def scan_directory(folder_path):
     findings = []
     
     # Files/Folders to ignore to speed up scan and avoid false positives
-    IGNORE_DIRS = {'.git', 'node_modules', 'venv', '__pycache__', 'tests'}
+    IGNORE_DIRS = {'.git', 'node_modules', 'venv', '__pycache__'}
     IGNORE_EXTS = {
     # Images & Media
     ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".ico", ".svg", ".mp4", ".mp3", ".wav",
