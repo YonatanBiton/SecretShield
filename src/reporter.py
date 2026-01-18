@@ -7,6 +7,7 @@ def generate_github_summary(findings):
     """
     Writes a Markdown summary specifically for GitHub Actions UI.
     """
+    print("DEBUG: genertating github summary...")
     # Get the special GitHub output file path
     github_summary_path = os.getenv('GITHUB_STEP_SUMMARY')
     
