@@ -70,9 +70,7 @@ def scan(
         console.print("[bold green] No issues found![/bold green]")
     else:
         if html:
-            # Placeholder for Phase 2 (HTML Generation)
             report_path = generate_html_report(findings, target)
-            # For now, we still print the table so you see results
             console.print(f"HTML Report generated: {report_path}")
             generate_github_summary(findings)
         else:
