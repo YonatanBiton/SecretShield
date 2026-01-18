@@ -25,7 +25,7 @@ def generate_github_summary(findings):
         
         for f in findings:
             # Format the row
-            md_content += f"| **{f['severity']}** | {f['type']} | `{f['file']}` | {f['line']} | {icon} |\n"
+            md_content += f"| **{f['severity']}** | {f['type']} | `{f['file']}` | {f['line']}  |\n"
 
     # Write to the GitHub environment file
     with open(github_summary_path, "a", encoding="utf-8") as f:
