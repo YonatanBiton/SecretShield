@@ -3,6 +3,7 @@ import shutil
 from rich.console import Console
 from rules import check_secrets, check_user_exists, check_docker_rules
 from validator import *
+import re
 def scan_dockerfile(file_path):
     """
     Scans a specific Dockerfile for all security rules (IaC + Secrets).
@@ -44,6 +45,30 @@ def scan_dockerfile(file_path):
     
     return findings
 
+def normalaize_line(line):
+    """
+    Safely merges split strings using simple replace.
+    Does NOT use regex to avoid accidental deletion of content.
+    """
+    # Create a copy of the line to avoid modifying the original list in memory
+    clean = line
+    
+    # 1. Handle "tight" concatenation: "A"+"B"
+    clean = clean.replace('"+"', '')
+    clean = clean.replace("'+'", "")
+    
+    # 2. Handle "spaced" concatenation: "A" + "B"
+    clean = clean.replace('" + "', '')
+    clean = clean.replace("' + '", "")
+    
+    # 3. Handle mixed quotes: "A" + 'B' (Less common but possible)
+    clean = clean.replace('" + \'', '')
+    clean = clean.replace('\' + "', '')
+
+    return clean
+    
+
+
 def scan_directory(folder_path):
     """
     Recursively scans a folder for secrets in code files (SAST).
@@ -80,9 +105,29 @@ def scan_directory(folder_path):
                 # errors='ignore' prevents crashing on weird binary files
                 with open(full_path, 'r', errors='ignore') as f:
                     lines = f.readlines()
-                for i, line in enumerate(lines):
+            except Exception:
+                continue
+            for i, line in enumerate(lines):
+                try:
                     # ONLY run secret check on code files
-                    res = check_secrets(line, i+1, all_lines=lines)
+                    clean_line = normalaize_line(line)
+                    res_raw = check_secrets(line, i+1, all_lines=lines)
+                    res_clean = None
+                    if clean_line != line:
+                        res_clean = check_secrets(clean_line, i+1, all_lines=lines)
+
+                    res = None
+                    if res_raw and not res_clean:
+                        res = res_raw
+                    elif res_clean and not res_raw:
+                        res = res_clean
+                    elif res_raw and res_clean:
+                        len_raw = len(res_raw.get("secret"), "")
+                        len_clean = len(res_clean.get("secret", ""))
+                        if len_clean > len_raw:
+                            res = res_clean
+                        else:
+                            res = res_raw
                     if res:
                         verify_msg = ""
                         secret_type = res.get("type")
@@ -97,7 +142,7 @@ def scan_directory(folder_path):
                             verify_msg = verify_slack_token(res.get("secret"))
                         #Google
                         elif secret_type.upper() == "GOOGLE_API":
-                            verify_msg = verify_google_api_key(res.get("secret"))
+                             verify_msg = verify_google_api_key(res.get("secret"))
                         #DigitalOcean
                         elif secret_type.upper() == "DIGITALOCEAN":
                             verify_msg = verify_digital_ocean_api(res.get("secret"))
@@ -117,10 +162,10 @@ def scan_directory(folder_path):
                                 res['message'] += f"[yellow]{verify_msg}[/yellow]"
                             else:
                                 res['message'] += f"[orange]{verify_msg}[/orange]"
-                         # We found a secret in a code file!
+                        # We found a secret in a code file!
                         res['file'] = os.path.relpath(full_path, folder_path) # Capture filename
                         findings.append(res)
-            except Exception:
-                continue # Skip files we can't open
+                except Exception:
+                    continue # Skip files we can't open
 
     return findings

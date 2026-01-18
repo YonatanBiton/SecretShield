@@ -6,7 +6,7 @@ import math
 SPECIFIC_PATTERNS = {
     "AWS": r'(AKIA[0-9A-Z]{16})',
     "Google_API": r'(AIza[0-9A-Za-z\\-_]{35})',
-    "Slack_Token": r'(xox[baprs]-([0-9a-zA-Z]{10,48}))',
+    "Slack_Token": r'(xox[baprs]-[a-zA-Z0-9-]+)',
     "GitHub": r'(ghp_[0-9a-zA-Z]{36})',
     "Stripe": r'(sk_live_[0-9a-zA-Z]{20,})',
     "Private Key Header": r'-----BEGIN [A-Z]+ PRIVATE KEY-----',
@@ -97,7 +97,6 @@ def check_secrets(line, line_num, all_lines):
     1. Checks High-Fidelity patterns first (Critical).
     2. Checks Generic patterns ONLY if the value looks like a real secret (Heuristic).
     """
-    
    # --- Layer 1: Specific Patterns (Critical) ---
     for secret_type, pattern in SPECIFIC_PATTERNS.items():
         match = re.search(pattern, line) # Capture the match object
