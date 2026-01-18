@@ -2,9 +2,9 @@ name: SecretShield Security Scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   security-check:
@@ -26,3 +26,25 @@ jobs:
       - name: Run SecretShield
         run: |
           python src/main.py .
+      # 5. Upload the HTML Report as an Artifact
+      # 'if: always()' ensures this runs even if the previous step failed (found secrets)
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SecretShield-Report
+          path: security_report.html
+          retention-days: 5
+<<<<<<< HEAD
+=======
+          
+      # 5. Upload the HTML Report as an Artifact
+      # 'if: always()' ensures this runs even if the previous step failed (found secrets)
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SecretShield-Report
+          path: security_report.html
+          retention-days: 5
+>>>>>>> dev

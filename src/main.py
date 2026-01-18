@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import subprocess
 import os
-
+from reporter import generate_html_report, generate_github_summary
 app = typer.Typer()
 console = Console()
 
@@ -34,11 +34,11 @@ def clone_repo_to_temp(git_url: str):
             )
             return temp_dir
         except subprocess.CalledProcessError:
-            console.print("[bold red]❌ Failed to clone repository. Check URL.[/bold red]")
+            console.print("[bold red]Failed to clone repository. Check URL.[/bold red]")
             shutil.rmtree(temp_dir)
             raise typer.Exit(code=1)
         except FileNotFoundError:
-            console.print("[bold red]❌ 'git' is not installed.[/bold red]")
+            console.print("[bold red] 'git' is not installed.[/bold red]")
             raise typer.Exit(code=1)
 
 @app.command()
@@ -58,24 +58,24 @@ def scan(
         is_temp = True
     
     if not os.path.exists(scan_path):
-        console.print(f"[bold red]❌ Path '{scan_path}' not found.[/bold red]")
+        console.print(f"[bold red] Path '{scan_path}' not found.[/bold red]")
         raise typer.Exit()
 
     # 2. Run Scan
-    console.print(f"[bold green]🔍 Scanning...[/bold green]")
+    console.print(f"[bold green] Scanning...[/bold green]")
     findings = scan_directory(scan_path)
     
     # 3. Output Logic (CLI Table vs HTML)
     if not findings:
-        console.print("[bold green]✅ No issues found![/bold green]")
+        console.print("[bold green] No issues found![/bold green]")
     else:
         if html:
-            # Placeholder for Phase 2 (HTML Generation)
-            console.print(f"[yellow]📝 HTML reporting coming soon! Found {len(findings)} issues.[/yellow]")
-            # For now, we still print the table so you see results
-            print_table(findings, target)
+            report_path = generate_html_report(findings, target)
+            console.print(f"HTML Report generated: {report_path}")
         else:
             print_table(findings, target)
+
+    generate_github_summary(findings)
 
     # 4. Cleanup
     if is_temp:
@@ -90,7 +90,7 @@ def scan(
 
 def print_table(findings, target):
     table = Table(title=f"Security Report: {target}")
-    table.add_column("File", style="cyan")
+    table.add_column("File", style="cyan", overflow="fold")
     table.add_column("Line", style="magenta")
     table.add_column("Severity", style="red")
     table.add_column("Message", style="white")
