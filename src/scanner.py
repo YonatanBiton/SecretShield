@@ -130,7 +130,6 @@ def scan_directory(folder_path):
                             res = res_clean
                         else:
                             res = res_raw
-                    print(res.get("secret"))
                     if res:
                         verify_msg = ""
                         secret_type = res.get("type")
