@@ -72,9 +72,10 @@ def scan(
         if html:
             report_path = generate_html_report(findings, target)
             console.print(f"HTML Report generated: {report_path}")
-            generate_github_summary(findings)
         else:
             print_table(findings, target)
+
+    generate_github_summary(findings)
 
     # 4. Cleanup
     if is_temp:
