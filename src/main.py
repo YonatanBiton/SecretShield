@@ -68,6 +68,9 @@ def scan(
     # 3. Output Logic (CLI Table vs HTML)
     if not findings:
         console.print("[bold green] No issues found![/bold green]")
+        if html:
+            report_path = generate_html_report(findings, target)
+            console.print(f"HTML Report generated: {report_path}")
     else:
         if html:
             report_path = generate_html_report(findings, target)
