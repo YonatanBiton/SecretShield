@@ -90,7 +90,7 @@ def scan(
 
 def print_table(findings, target):
     table = Table(title=f"Security Report: {target}")
-    table.add_column("File", style="cyan")
+    table.add_column("File", style="cyan", overflow="fold")
     table.add_column("Line", style="magenta")
     table.add_column("Severity", style="red")
     table.add_column("Message", style="white")
