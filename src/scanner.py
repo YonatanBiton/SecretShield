@@ -113,9 +113,11 @@ def scan_directory(folder_path):
                     clean_line = normalaize_line(line)
                     res_raw = check_secrets(line, i+1, all_lines=lines)
                     res_clean = None
+                    
                     if clean_line != line:
                         res_clean = check_secrets(clean_line, i+1, all_lines=lines)
-
+                     #   print(res_clean.get("secret"))
+                    #print(res_raw.get("secret"))
                     res = None
                     if res_raw and not res_clean:
                         res = res_raw
@@ -128,6 +130,7 @@ def scan_directory(folder_path):
                             res = res_clean
                         else:
                             res = res_raw
+                    print(res.get("secret"))
                     if res:
                         verify_msg = ""
                         secret_type = res.get("type")
@@ -154,7 +157,7 @@ def scan_directory(folder_path):
                             verify_msg = verify_aws_access_key(res.get("key_id"), res.get("secret_key"))
                         #adding check msg to the end message
                         #checking if a key is inactive then severity goes down to medium.
-                        if verify_msg:
+                        if verify_msg != "":
                             if "ACTIVE" in verify_msg:
                                 res['message'] += f"[red]{verify_msg}[/red]"
                             elif "inactive" in verify_msg.lower():

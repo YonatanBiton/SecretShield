@@ -16,7 +16,7 @@ SPECIFIC_PATTERNS = {
 
 # Generic Suspicious Variable Names
 # We look for these words in the variable NAME, not the value.
-SUSPICIOUS_NAMES = r'(?i)(password|secret|token|api_key|access_key|auth_key|credentials)'
+SUSPICIOUS_NAMES = r'(?i)(password|secret|token|api_key|access_key|auth_key|credentials|key)'
 
 def find_aws_secret_candidate(lines, index):
     """
@@ -64,14 +64,17 @@ def is_high_entropy(value):
     """
     # 1. Length Check (Still essential)
     if len(value) < 8:
+        print("less then 8")
         return False
         
     # 2. Dynamic Value & Placeholder Checks (Keep these!)
     if value.strip().startswith(("$", "{{", "<%", "openssl", "base64")):
-         return False
+        print("start with dynamic")
+        return False
 
     upper_val = value.upper()
     if "EXAMPLE" in upper_val or "CHANGE_ME" in upper_val:
+        print("has example")
         return False
         
     # 3. THE NEW MATH LOGIC
@@ -89,7 +92,7 @@ def is_high_entropy(value):
         return entropy > 3.0
     else:
         # Standard strings (Base64 / Ascii)
-        return entropy > 4.5
+        return entropy > 3.6
 
 def check_secrets(line, line_num, all_lines):
     """
@@ -138,18 +141,22 @@ def check_secrets(line, line_num, all_lines):
     # We regex for: VARIABLE_NAME = "VALUE"
     # Group 1: Name, Group 2: Quote, Group 3: Value
     generic_match = re.search(rf"""{SUSPICIOUS_NAMES}\s*=\s*(['"])(.*?)(\2)""", line)
-    
+
     if generic_match:
         variable_name = generic_match.group(1) # e.g., "DB_PASSWORD"
         secret_value = generic_match.group(3)  # e.g., "x8!sPa2@1"
-        
+        try:
         # Apply Logic: Is this actually a secret?
-        if is_high_entropy(secret_value):
-            return {
-                "line": line_num,
-                "severity": "HIGH",
-                "message": f"Suspicious hardcoded secret found in variable '{variable_name}'."
-            }
+            if is_high_entropy(secret_value):
+                return {
+                    "line": line_num,
+                    "severity": "HIGH",
+                    "type": "Unkown",
+                    "secret": secret_value,
+                    "message": f"Suspicious hardcoded secret found in variable '{variable_name}'."
+                }
+        except Exception as e:
+            print(e)
 
     return None
 
