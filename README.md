@@ -68,7 +68,8 @@ python src/main.py <folder_or_repo> --html
 
 ##  HTML Report
 
-<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/c609aafd-5bd9-407e-a91c-8cbd41a84c66" />
+<img width="1906" height="905" alt="image" src="https://github.com/user-attachments/assets/d918ef87-803c-491b-94a9-8a7fae3e1606" />
+
 
 
 ```text
