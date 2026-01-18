@@ -1,0 +1,32 @@
+name: 'SecretShield Scanner'
+description: 'Scans repository for hardcoded secrets and actively validates them.'
+author: 'Yonatan Biton'
+inputs:
+  target:
+    description: 'The directory to scan'
+    required: false
+    default: '.'
+  html:
+    description: 'Generate HTML report (true/false)'
+    required: false
+    default: 'true'
+
+runs:
+  using: "composite"
+  steps:
+    # 1. Install dependencies using the files inside YOUR action folder
+    - name: Install Requirements
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+      shell: bash
+
+    # 2. Run the scanner
+    # We use ${{ github.action_path }} to find the python script inside the action
+    - name: Run Scanner
+      run: |
+        FLAGS=""
+        if [ "${{ inputs.html }}" == "true" ]; then
+          FLAGS="--html"
+        fi
+        
+        python ${{ github.action_path }}/src/main.py "${{ inputs.target }}" $FLAGS
+      shell: bash
