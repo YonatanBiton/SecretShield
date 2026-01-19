@@ -89,7 +89,7 @@ def is_high_entropy(value):
         return entropy > 3.0
     else:
         # Standard strings (Base64 / Ascii)
-        return entropy > 3.6
+        return entropy > 3.9
 
 def check_secrets(line, line_num, all_lines):
     """
