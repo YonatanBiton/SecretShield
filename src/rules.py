@@ -209,7 +209,7 @@ def check_secrets(line: str, line_num: int, all_lines: List[str] = None) -> Opti
                 return {
                     "line": line_num,
                     "severity": "HIGH",
-                    "type": "Unknown", # Generic type since we don't know the provider
+                    "type": f"Unknown {variable_name}", # Generic type since we don't know the provider
                     "secret": secret_value,
                     "message": f"Suspicious hardcoded secret found in variable '{variable_name}'."
                 }
