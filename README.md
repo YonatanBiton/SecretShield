@@ -135,7 +135,7 @@ jobs:
 ### 1. The Interactive HTML Report
 A detailed dashboard showing severity breakdown and exact code locations.
 
-<img width="1261" height="2589" alt="_C__Users_Yonatan_Desktop_codeing%20projects_dockSentry_security_report html" src="https://github.com/user-attachments/assets/0c3d54eb-35ef-4820-9900-f7ee28f49539" />
+<img width="1261" height="1008" alt="_C__Users_Yonatan_Desktop_codeing%20projects_dockSentry_security_report html (1)" src="https://github.com/user-attachments/assets/303adb15-3f81-4bb8-86c2-fa050f620d9b" />
 
 
 ### 2. CLI Output & Verification
