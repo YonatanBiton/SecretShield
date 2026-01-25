@@ -135,12 +135,13 @@ jobs:
 ### 1. The Interactive HTML Report
 A detailed dashboard showing severity breakdown and exact code locations.
 
-<img width="100%" alt="HTML Report Dashboard" src="https://github.com/user-attachments/assets/d918ef87-803c-491b-94a9-8a7fae3e1606" />
+<img width="1261" height="2589" alt="_C__Users_Yonatan_Desktop_codeing%20projects_dockSentry_security_report html" src="https://github.com/user-attachments/assets/0c3d54eb-35ef-4820-9900-f7ee28f49539" />
+
 
 ### 2. CLI Output & Verification
 Real-time feedback in the terminal showing "Active" status for leaked keys.
 
->  <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
+ <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
 
 
 ### 3. CI/CD Integration (GitHub Summary)
