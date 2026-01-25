@@ -41,33 +41,41 @@ SUSPICIOUS_NAMES = r'(?i)(password|secret|token|api_key|access_key|auth_key|cred
 def find_aws_secret_candidate(lines: List[str], index: int) -> Optional[str]:
     """Scans nearby lines for a potential AWS Secret Key.
     
-    An AWS Access Key ID (AKIA...) is rarely useful without its paired Secret Key.
-    This function looks at a window of +/- 4 lines around the ID to find the
-    corresponding 40-character secret key.
-
-    Args:
-        lines (List[str]): The entire file content.
-        index (int): The line number where the Access Key ID was found.
-
-    Returns:
-        Optional[str]: The secret key if found, otherwise None.
+    Strategy:
+    1. SAME LINE: Look for ANY 40-char string (high confidence due to AKIA presence).
+    2. NEARBY LINES: Look for 40-char string labeled with 'secret', 'key', etc.
     """
     start = max(0, index - 4)
     end = min(len(lines), index + 5)
     
-    # Regex for a standard AWS Secret Key (40 chars, alphanumeric + symbols)
-    # Matches: secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    secret_pattern = r'(?i)(secret|key).*?[:=]\s*["\']?([A-Za-z0-9/+=]{40})["\']?'
+    # Regex 1: Strict Context (For neighboring lines)
+    # Requires "secret", "key", "password", etc. before the value
+    strict_pattern = r'(?i)(secret|key|pwd|token).?[:=]\s["\']?([A-Za-z0-9/+=]{40})["\']?'
+
+    # Regex 2: Loose Context (For the SAME line only)
+    # Just looks for a 40-char base64 string.
+    # We use lookarounds (?<!) to ensure we don't cut a longer string in half.
+    loose_pattern = r'(?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])'
     
     for i in range(start, end):
-        # Don't re-check the line that triggered the ID search
-        if i == index: 
-            continue
-            
         line = lines[i]
-        match = re.search(secret_pattern, line)
-        if match:
-            return match.group(2) # Return the captured secret string
+
+        # --- CASE A: The Same Line (High Confidence) ---
+        if i == index:
+            # The AKIA key is already here, so any 40-char string is likely the secret.
+            matches = re.findall(loose_pattern, line)
+            for match in matches:
+                # Filter out Git Commit Hashes (40 chars, but hex only)
+                if re.fullmatch(r'[0-9a-f]{40}', match):
+                    continue
+                return match
+
+        # --- CASE B: Neighboring Lines (Needs Context) ---
+        else:
+            # We need the variable name to be "secret" or "key" to be sure
+            match = re.search(strict_pattern, line)
+            if match:
+                return match.group(2)
             
     return None
 
