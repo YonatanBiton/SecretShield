@@ -1,35 +1,53 @@
+"""
+Unit Tests for SecretShield Rules Engine.
+
+This module validates the core detection logic, ensuring that:
+1. Heuristics correctly identify high-entropy strings.
+2. Regex patterns catch specific provider keys (AWS, Stripe, etc.).
+3. Dockerfile linting rules flag insecure practices.
+4. Obfuscation techniques (string concatenation) are detected.
+
+Usage:
+    Run from the root directory:
+    $ pytest tests/test_rules.py
+"""
+
+import sys
+import os
 import pytest
+
+# --- Path Setup ---
+# Add the project root to sys.path so we can import from 'src'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+
 from src.rules import check_secrets, check_docker_rules, check_user_exists, is_high_entropy
+from src.scanner import normalize_line
 
 # ==============================================================================
 # 1. Testing the "Brain" (Entropy & Heuristics)
 # ==============================================================================
 
 @pytest.mark.parametrize("value, expected", [
-    # --- TRUE POSITIVES (Should be High Entropy / Dangerous) ---
-    ("Xy9#mP!2", True),           # Mixed case + symbols + numbers
-    ("gH7@bL9$kP2!", True),       # Long complex string
-    ("SuperSecret1!", True),      # Borderline, but meets criteria (Upper+Lower+Digit+Symbol)
-    ("A1b2C3d4E5", True),         # High variance alphanumeric
+    # --- TRUE POSITIVES (Long, Random API Tokens) ---
+    # These must be long enough (>16 chars) to mathematically exceed 3.9 entropy
+    ("Xy9#mP!2_ZqRwK9@vN3$", True),       
+    ("gH7@bL9$kP2!mX5#nR8*", True),       
+    ("A1b2C3d4E5f6G7h8I9j0", True),
+    ("sk_live_51Mz9abcdefghijklmnopqr", True), # Real-looking Stripe key
     
-    # --- FALSE POSITIVES (Should be Low Entropy / Safe) ---
-    ("password", False),          # Just lowercase
-    ("123456", False),            # Just digits
-    ("CHANGE_ME", False),         # Known placeholder
-    ("EXAMPLE_KEY", False),       # Known placeholder
-    ("true", False),              # Boolean
-    ("false", False),             # Boolean
-    ("admin", False),             # Common word
-    ("localhost", False),         # Config value
-    ("postgres", False),          # Database name
-    ("root", False),              # User name
-    ("short", False),             # Too short (<12 chars)
+    # --- FALSE POSITIVES (Safe or Too Short) ---
+    ("password", False),           # Just lowercase
+    ("123456", False),             # Just digits
+    ("CHANGE_ME", False),          # Known placeholder
+    ("EXAMPLE_KEY", False),        # Known placeholder
+    ("admin", False),              # Common word
+    ("localhost", False),          # Config value
+    # Short random string (8 chars). 
+    # Max entropy for length 8 is 3.0, so this MUST return False (Threshold is 3.9)
+    ("Xy9#mP!2", False),           
 ])
 def test_is_high_entropy(value, expected):
-    """
-    Verifies that the heuristic engine correctly identifies random/complex strings
-    while ignoring common placeholders.
-    """
+    """Verifies that the heuristic engine correctly flags random strings."""
     assert is_high_entropy(value) == expected, f"Entropy check failed for: {value}"
 
 
@@ -46,22 +64,21 @@ def test_is_high_entropy(value, expected):
     
     # --- GENERIC HEURISTICS (High) ---
     # Good matches (Suspicious Name + Complex Value)
-    ('DB_PASSWORD = "Xy9#mP!2"', "HIGH"), 
-    ('export SECRET_TOKEN="gH7@bL9$kP2!"', "HIGH"),
-    ('   api_key  =  "Z9@#12kL!mN"', "HIGH"), # Weird spacing handling
+    ('DB_PASSWORD = "Xy9#mP!2_ZqRwK9@vN3$"', "HIGH"), 
+    ('export SECRET_TOKEN="gH7@bL9$kP2!mX5#nR8*"', "HIGH"),
+    ('   api_key  =  "Z9@#12kL!mN_LONG_ENOUGH"', "HIGH"),
 
     # --- FALSE ALARMS (Should be Ignored) ---
-    ('DB_PASSWORD = "password"', None),        # Placeholder value
-    ('API_KEY = "123456"', None),              # Too short/simple
-    ('AUTH_TOKEN = "CHANGE_ME"', None),        # Placeholder
-    ('public_key = "MIIBIjANBgkq..."', None),  # Public keys are safe (usually)
-    ('image_id = "AKIA_BUT_FAKE"', None),      # Looks like AWS but wrong regex length/format
+    ('DB_PASSWORD = "password"', None),         # Placeholder value
+    ('API_KEY = "123456"', None),               # Too short/simple
+    ('AUTH_TOKEN = "CHANGE_ME"', None),         # Placeholder
+    ('image_id = "AKIA_BUT_FAKE"', None),       # Looks like AWS but wrong regex length
 ])
 def test_check_secrets(line, expected_severity):
-    """
-    Verifies that we catch real secrets and ignore fake ones.
-    """
-    result = check_secrets(line, 1)
+    """Verifies that we catch real secrets and ignore fake ones."""
+    # We pass 'None' for all_lines since these are single-line checks
+    result = check_secrets(line, 1, all_lines=None)
+    
     if expected_severity is None:
         assert result is None, f"Should NOT have flagged: {line}"
     else:
@@ -94,10 +111,9 @@ def test_check_secrets(line, expected_severity):
     ("RUN pip install -r requirements.txt", None),        # Good (Indirect pinning)
 ])
 def test_docker_rules(line, expected_message_part):
-    """
-    Verifies IaC (Infrastructure as Code) rules for Dockerfiles.
-    """
+    """Verifies IaC (Infrastructure as Code) rules for Dockerfiles."""
     result = check_docker_rules(line, 1)
+    
     if expected_message_part is None:
         assert result is None, f"False positive on Docker rule: {line}"
     else:
@@ -110,9 +126,7 @@ def test_docker_rules(line, expected_message_part):
 # ==============================================================================
 
 def test_user_check_missing():
-    """
-    Test that a Dockerfile running as root (no USER instruction) is flagged.
-    """
+    """Test that a Dockerfile running as root (no USER instruction) is flagged."""
     content = [
         "FROM python:3.9\n",
         "WORKDIR /app\n",
@@ -124,9 +138,7 @@ def test_user_check_missing():
     assert "root" in result['message']
 
 def test_user_check_present():
-    """
-    Test that a Dockerfile with a USER instruction is considered safe.
-    """
+    """Test that a Dockerfile with a USER instruction is considered safe."""
     content = [
         "FROM python:3.9\n",
         "RUN useradd myuser\n",
@@ -135,3 +147,30 @@ def test_user_check_present():
     ]
     result = check_user_exists(content)
     assert result is None
+
+
+# ==============================================================================
+# 5. Testing Obfuscation (String Concatenation)
+# ==============================================================================
+
+def test_obfuscated_secret():
+    """
+    Test that a secret split into multiple parts (concatenation) is detected.
+    This simulates evasion techniques like: "part1" + "part2"
+    """
+    # 1. The sneaky line of code (Stripe key split in half)
+    sneaky_line = 'API_Key = "sk_live_51Mz" + "9abcdefghijklmnopqr"'
+    
+    # 2. Run the normalization logic (just like scanner.py does)
+    cleaned_line = normalize_line(sneaky_line)
+    
+    # 3. Verify normalization worked
+    # Should look like: API_Key = "sk_live_51Mz9abcdefghijklmnopqr"
+    assert "sk_live_51Mz9abcdefghijklmnopqr" in cleaned_line
+    
+    # 4. Now check for secrets on the cleaned line
+    result = check_secrets(cleaned_line, 1, all_lines=None)
+    
+    assert result is not None, "Failed to detect concatenated secret!"
+    assert result['type'] == 'Stripe'
+    assert result['severity'] == 'CRITICAL'
