@@ -170,7 +170,7 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
                 <div>
-                    <h1 class="display-6">🛡️ SecretShield Scan</h1>
+                    <h1 class="display-6">SecretShield Scan</h1>
                     <p class="text-muted mb-0">Target: <code>{target_dir}</code></p>
                 </div>
                 <div class="text-end">
