@@ -111,4 +111,3 @@ License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 Disclaimer: This tool is intended for security testing of repositories you own or have explicit permission to scan. Do not use this tool on unauthorized codebases.
-
