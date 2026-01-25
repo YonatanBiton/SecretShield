@@ -10,13 +10,13 @@ Unlike traditional regex scanners that flag *any* suspicious string, SecretShiel
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-* **🔍 High-Fidelity Detection:** Uses a combination of regex patterns and **Shannon Entropy analysis** to find obfuscated secrets.
-* **⚡ Active Verification:** Connects to provider APIs (AWS STS, Stripe Balance, GitHub User, etc.) to check if credentials are valid.
-* **🐳 Docker Security:** Scans `Dockerfile` configurations for security best practices (e.g., root user usage, latest tags).
-* **📊 Multi-Format Reporting:** Generates interactive HTML reports and integrates directly with **GitHub Actions Job Summaries**.
-* **🔄 CI/CD Native:** Designed to break builds in pipelines when critical vulnerabilities are found.
+* **High-Fidelity Detection:** Uses a combination of regex patterns and **Shannon Entropy analysis** to find obfuscated secrets.
+* **Active Verification:** Connects to provider APIs (AWS STS, Stripe Balance, GitHub User, etc.) to check if credentials are valid.
+* **Docker Security:** Scans `Dockerfile` configurations for security best practices (e.g., root user usage, latest tags).
+* **Multi-Format Reporting:** Generates interactive HTML reports and integrates directly with **GitHub Actions Job Summaries**.
+* **CI/CD Native:** Designed to break builds in pipelines when critical vulnerabilities are found.
 
 ---
 
@@ -61,14 +61,14 @@ graph TD
 * Git
 
 ```bash
-git clone [https://github.com/YonatanBiton/SecretShield.git](https://github.com/YonatanBiton/SecretShield.git)
+git clone https://github.com/YonatanBiton/SecretShield.git
 cd SecretShield
 pip install -r requirements.txt
 ```
 
 ---
 
-## 💻 Usage
+##  Usage
 
 ### 1. Scan a Local Directory
 ```bash
@@ -78,17 +78,21 @@ python src/main.py /path/to/project --html
 ### 2. Scan a Remote Repository
 SecretShield allows you to scan any public Git repository without cloning it manually.
 ```bash
-python src/main.py [https://github.com/username/repo-name](https://github.com/username/repo-name)
+python src/main.py https://github.com/username/repo-name
 ```
 
 ---
 
-## 🤖 GitHub Actions Integration
+##  GitHub Actions Integration
 
 SecretShield is designed to run inside your CI/CD pipeline. It will:
 1.  Scan every Pull Request.
 2.  **Fail the build** if critical secrets are found.
 3.  Post a summary table directly to the GitHub Actions workflow UI.
+
+You can easily integrate it into any workflow to scan for secrets on every push or pull request.
+
+**Usage Example:**
 
 Create a file at `.github/workflows/security-scan.yml`:
 
@@ -98,28 +102,30 @@ name: SecretShield Security Scan
 on: [push, pull_request]
 
 jobs:
-  secret-scan:
+  security-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      # 1. Setup Python Environment
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
-        run: |
-          git clone [https://github.com/YonatanBiton/SecretShield.git](https://github.com/YonatanBiton/SecretShield.git) tools/SecretShield
-          pip install -r tools/SecretShield/requirements.txt
-
-      - name: Run SecretShield
-        env:
-          GITHUB_STEP_SUMMARY: $GITHUB_STEP_SUMMARY
-        run: |
-          # Scans the current repo (.)
-          python tools/SecretShield/src/main.py . --html
+      # 2. Run SecretShield Action
+      - name: SecretShield Scan
+        uses: YonatanBiton/SecretShield@main
+        with:
+          target: '.'
+          html: 'true'
+      
+      # 3. Upload the HTML Report as an Artifact
+      - name: Upload Report
+        if: always() # Uploads even if secrets are found (and build fails)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Security-Report
+          path: security_report.html
 ```
 
 ---
@@ -134,14 +140,14 @@ A detailed dashboard showing severity breakdown and exact code locations.
 ### 2. CLI Output & Verification
 Real-time feedback in the terminal showing "Active" status for leaked keys.
 
-> ** <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
-**
+>  <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
+
 
 ### 3. CI/CD Integration (GitHub Summary)
 How results appear inside the GitHub Actions "Summary" tab.
 
-> **[Place a screenshot of the GitHub Actions Summary Table here]**
-> *Tip: This is critical for recruiters to see you understand DevOps workflows.*
+<img width="1885" height="884" alt="image" src="https://github.com/user-attachments/assets/cc014fc1-e173-478f-ac8d-56057ae3fd9a" />
+
 
 ---
 
