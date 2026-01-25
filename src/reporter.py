@@ -1,49 +1,91 @@
+"""
+Reporter Module for SecretShield.
+
+This module handles the formatting and output of security scan results.
+It translates raw finding dictionaries into human-readable formats:
+1. GitHub Actions Summary (Markdown): For CI/CD pipeline visibility.
+2. HTML Report (Bootstrap 5): For detailed, interactive developer review.
+
+Dependencies:
+    - os: For accessing environment variables and file paths.
+    - re: For stripping/converting terminal color codes.
+    - datetime: For timestamping reports.
+"""
+
 import os
 import re
 from datetime import datetime
+from typing import List, Dict, Any
 
-def generate_github_summary(findings):
-    """
-    Writes a Markdown summary specifically for GitHub Actions UI.
+def generate_github_summary(findings: List[Dict[str, Any]]) -> None:
+    """Writes a Markdown summary specifically for the GitHub Actions UI.
+
+    This function checks for the 'GITHUB_STEP_SUMMARY' environment variable,
+    which is automatically provided by GitHub Actions runners. If present,
+    it appends a summary table of the findings to that file so they appear
+    in the workflow run summary page.
+
+    Args:
+        findings (List[Dict[str, Any]]): List of finding dictionaries containing
+            'severity', 'type', 'file', and 'line'.
     """
     # Get the special GitHub output file path
     github_summary_path = os.getenv('GITHUB_STEP_SUMMARY')
     
+    # If the env var isn't set, we are likely running locally, so skip this.
     if not github_summary_path:
-        return # We are not running in GitHub Actions
+        return 
 
-    # Create Markdown Table
+    # Header
     md_content = "# SecretShield Scan Results\n\n"
     
     if not findings:
         md_content += "**No secrets found. Great job!**"
     else:
         md_content += f"Found **{len(findings)}** potential secrets.\n\n"
+        
+        # Table Header
         md_content += "| Severity | Type | File | Line | Status |\n"
         md_content += "| :--- | :--- | :--- | :--- | :--- |\n"
         
+        # Table Rows
         for f in findings:
-            # Format the row
             md_content += f"| **{f['severity']}** | {f['type']} | `{f['file']}` | {f['line']} |\n"
 
     # Write to the GitHub environment file
-    with open(github_summary_path, "a", encoding="utf-8") as f:
-        f.write(md_content)
+    # We use 'a' (append) because other steps might have written to the summary too.
+    try:
+        with open(github_summary_path, "a", encoding="utf-8") as f:
+            f.write(md_content)
+    except IOError as e:
+        # Fail silently or log error depending on preference; usually non-critical
+        print(f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}")
 
-def clean_and_convert_markup(text):
-    """
-    Converts Rich terminal tags to HTML Bootstrap badges/spans.
-    """
-    if not text: return ""
 
-    # 1. Convert specific "Active" tags to Bootstrap Badges
+def clean_and_convert_markup(text: str) -> str:
+    """Converts 'Rich' terminal library tags to HTML Bootstrap badges/spans.
+
+    The scanner uses the 'Rich' library for colored console output (e.g., [bold red]).
+    This function translates those tags into web-safe HTML (e.g., <span class="text-danger">)
+    so the HTML report retains the visual cues of the terminal output.
+
+    Args:
+        text (str): The raw text string with Rich markup.
+
+    Returns:
+        str: The HTML-safe string with Bootstrap classes.
+    """
+    if not text: 
+        return ""
+
+    # 1. Convert specific "Active" tags to Bootstrap Badges (Red/Danger)
     text = text.replace("[bold white on red]", '<span class="badge bg-danger">')
     text = text.replace("[/bold white on red]", '</span>')
     
     text = text.replace("[red]", '<span class="text-danger fw-bold">')
     text = text.replace("[/red]", '</span>')
 
-    # 2. Convert "Dim" (Inactive) tags to muted text
+    # 2. Convert "Dim" (Inactive) tags to muted text (Gray)
     text = text.replace("[dim]", '<span class="text-muted">')
     text = text.replace("[/dim]", '</span>')
     
@@ -54,32 +96,49 @@ def clean_and_convert_markup(text):
     text = text.replace("[yellow]", '<span class="text-warning">')
     text = text.replace("[/yellow]", '</span>')
 
-    # 4. Convert Orange warnings
+    # 4. Convert Orange warnings (Medium Severity)
     text = text.replace("[bold white on orange]", '<span class="badge bg-orange text-white">')
     text = text.replace("[/bold white on orange]", '</span>')
     
     text = text.replace("[orange]", '<span class="text-orange fw-bold">')
     text = text.replace("[/orange]", '</span>')
 
-    # 5. Strip any other remaining brackets (regex) just in case
+    # 5. Cleanup: Strip any remaining Rich tags using Regex
     text = re.sub(r'\[/?bold.*?\]', '', text) 
     text = re.sub(r'\[/?white.*?\]', '', text) 
     
-    # 6. Convert Newlines to <br> for HTML
+    # 6. Formatting: Convert Newlines to HTML line breaks
     text = text.replace('\n', '<br>')
     
     return text
 
-def generate_html_report(findings, target_dir="."):
+
+def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") -> str:
+    """Generates a standalone HTML report using Bootstrap 5.
+
+    This report includes:
+    - A dashboard with counters for Critical, High, Medium, and Low issues.
+    - A detailed list of findings sorted by severity.
+    - Visual indicators for verified (active) vs. unverified secrets.
+
+    Args:
+        findings (List[Dict[str, Any]]): List of finding objects.
+        target_dir (str, optional): The directory that was scanned. Defaults to ".".
+
+    Returns:
+        str: The absolute path to the generated 'security_report.html' file.
+    """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Calculate Stats
+    # --- Statistics Calculation ---
     total_issues = len(findings)
     critical_count = len([f for f in findings if f['severity'] == 'CRITICAL'])
     high_count = len([f for f in findings if f['severity'] == 'HIGH'])
     medium_count = len([f for f in findings if f['severity'] == 'MEDIUM'])
     low_count = len([f for f in findings if f['severity'] == 'LOW'])
     
+    # --- HTML Header & CSS ---
+    # Using f-string for template generation
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -92,13 +151,13 @@ def generate_html_report(findings, target_dir="."):
             body {{ background-color: #f8f9fa; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
             .card {{ margin-bottom: 15px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
             
-            /* Custom Severity Colors */
+            /* Custom Severity Borders */
             .severity-critical {{ border-left: 8px solid #dc3545; }} /* Red */
-            .severity-high {{ border-left: 8px solid #ffc107; }}     /* Yellow */
-            .severity-medium {{ border-left: 8px solid #fd7e14; }}   /* Orange */
-            .severity-low {{ border-left: 8px solid #198754; }}      /* Green */
+            .severity-high {{ border-left: 8px solid #ffc107; }}      /* Yellow */
+            .severity-medium {{ border-left: 8px solid #fd7e14; }}    /* Orange */
+            .severity-low {{ border-left: 8px solid #198754; }}       /* Green */
             
-            /* Custom Badges for cards */
+            /* Custom Colors */
             .bg-orange {{ background-color: #fd7e14 !important; color: white; }}
             .text-orange {{ color: #fd7e14 !important; }}
             
@@ -111,7 +170,7 @@ def generate_html_report(findings, target_dir="."):
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
                 <div>
-                    <h1 class="display-6">SecretShield Scan</h1>
+                    <h1 class="display-6">🛡️ SecretShield Scan</h1>
                     <p class="text-muted mb-0">Target: <code>{target_dir}</code></p>
                 </div>
                 <div class="text-end">
@@ -166,26 +225,32 @@ def generate_html_report(findings, target_dir="."):
             <h4 class="mb-4">Detailed Findings</h4>
     """
 
+    # --- Findings Loop ---
     if not findings:
-        html_content += '<div class="alert alert-success p-4"><strong>Clean Scan!</strong> No secrets were detected in this repository.</div>'
+        html_content += (
+            '<div class="alert alert-success p-4">'
+            '<strong>Clean Scan!</strong> No secrets were detected in this repository.'
+            '</div>'
+        )
     else:
         # Sort findings by severity (Critical -> Low)
+        # We map severity strings to integers for sorting: Lower number = Higher Priority
         severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
         findings.sort(key=lambda x: severity_order.get(x['severity'], 99))
 
         for f in findings:
             sev = f['severity'].upper()
             
-            # --- COLOR LOGIC ---
+            # Determine styling based on severity
             if sev == "CRITICAL": 
                 sev_class = "severity-critical"
                 badge_class = "bg-danger"
             elif sev == "HIGH": 
                 sev_class = "severity-high"
-                badge_class = "bg-warning text-dark" # Yellow needs dark text to be readable
+                badge_class = "bg-warning text-dark" # Yellow needs dark text
             elif sev == "MEDIUM": 
                 sev_class = "severity-medium"
-                badge_class = "bg-orange" # Custom class defined in CSS above
+                badge_class = "bg-orange"
             elif sev == "LOW": 
                 sev_class = "severity-low"
                 badge_class = "bg-success"
@@ -193,7 +258,7 @@ def generate_html_report(findings, target_dir="."):
                 sev_class = "severity-medium"
                 badge_class = "bg-secondary"
 
-            # Clean the terminal message for HTML
+            # Clean the message for HTML (convert Rich tags to spans)
             cleaned_message = clean_and_convert_markup(f['message'])
             
             html_content += f"""
@@ -222,6 +287,7 @@ def generate_html_report(findings, target_dir="."):
             </div>
             """
 
+    # --- HTML Footer ---
     html_content += """
         </div>
         <footer class="text-center mt-5 mb-5 text-muted border-top pt-4">
@@ -232,6 +298,8 @@ def generate_html_report(findings, target_dir="."):
     """
 
     output_filename = "security_report.html"
+    
+    # Write to file
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(html_content)
     
