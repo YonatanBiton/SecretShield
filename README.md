@@ -156,13 +156,21 @@ How results appear inside the GitHub Actions "Summary" tab.
 
 ```text
 SecretShield/
-├── src/
-│   ├── main.py       # CLI Entry Point
-│   ├── scanner.py    # File Traversal & Logic
-│   ├── rules.py      # Regex Patterns & Entropy Math
-│   ├── validator.py  # Active API Verification Engine
-│   └── reporter.py   # HTML & Markdown Generators
-├── requirements.txt
+├── .github/
+│   └── workflows/
+│       └── security-scan.yml   # GitHub Actions CI pipeline
+├── src/                        # Core Application Logic
+│   ├── main.py                 # CLI Entry Point
+│   ├── scanner.py              # File Walker & Obfuscation Handling
+│   ├── rules.py                # Regex Patterns & Entropy Engine
+│   ├── validator.py            # Active Verification (API Calls)
+│   └── reporter.py             # HTML & Markdown Report Generators
+├── tests/
+│   └── test_rules.py           # Unit Tests (Pytest)
+├── action.yml                  # GitHub Action Definition
+├── .gitignore
+├── pyproject.toml
+├── requirements.txt            # Project Dependencies
 └── README.md
 ```
 
