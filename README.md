@@ -134,8 +134,8 @@ A detailed dashboard showing severity breakdown and exact code locations.
 ### 2. CLI Output & Verification
 Real-time feedback in the terminal showing "Active" status for leaked keys.
 
-> **[Place a screenshot of your terminal here]**
-> *Tip: Run a scan against a dummy repo with colored output to show off the "Active" red text vs "Inactive" gray text.*
+> ** <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
+**
 
 ### 3. CI/CD Integration (GitHub Summary)
 How results appear inside the GitHub Actions "Summary" tab.
