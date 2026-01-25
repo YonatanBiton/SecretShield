@@ -154,8 +154,8 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
             /* Custom Severity Borders */
             .severity-critical {{ border-left: 8px solid #8B0000; }} /* bordo */
             .severity-high {{ border-left: 8px solid #dc3545; }}      /* red */
-            .severity-medium {{ border-left: 8px solid #ffc107; }}    /* Orange */
-            .severity-low {{ border-left: 8px solid #198754; }}       /* Green */
+            .severity-medium {{ border-left: 8px solid #F0AD4E; }}    /* Orange */
+            .severity-low {{ border-left: 8px solid #5CB85C; }}       /* Green */
             
             /* Custom Colors */
             .bg-orange {{ background-color: #fd7e14 !important; color: white; }}
