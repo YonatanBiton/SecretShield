@@ -10,13 +10,13 @@ Unlike traditional regex scanners that flag *any* suspicious string, SecretShiel
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-* **🔍 High-Fidelity Detection:** Uses a combination of regex patterns and **Shannon Entropy analysis** to find obfuscated secrets.
-* **⚡ Active Verification:** Connects to provider APIs (AWS STS, Stripe Balance, GitHub User, etc.) to check if credentials are valid.
-* **🐳 Docker Security:** Scans `Dockerfile` configurations for security best practices (e.g., root user usage, latest tags).
-* **📊 Multi-Format Reporting:** Generates interactive HTML reports and integrates directly with **GitHub Actions Job Summaries**.
-* **🔄 CI/CD Native:** Designed to break builds in pipelines when critical vulnerabilities are found.
+* ** High-Fidelity Detection:** Uses a combination of regex patterns and **Shannon Entropy analysis** to find obfuscated secrets.
+* ** Active Verification:** Connects to provider APIs (AWS STS, Stripe Balance, GitHub User, etc.) to check if credentials are valid.
+* ** Docker Security:** Scans `Dockerfile` configurations for security best practices (e.g., root user usage, latest tags).
+* ** Multi-Format Reporting:** Generates interactive HTML reports and integrates directly with **GitHub Actions Job Summaries**.
+* ** CI/CD Native:** Designed to break builds in pipelines when critical vulnerabilities are found.
 
 ---
 
@@ -68,7 +68,7 @@ pip install -r requirements.txt
 
 ---
 
-## 💻 Usage
+##  Usage
 
 ### 1. Scan a Local Directory
 ```bash
@@ -83,7 +83,7 @@ python src/main.py [https://github.com/username/repo-name](https://github.com/us
 
 ---
 
-## 🤖 GitHub Actions Integration
+##  GitHub Actions Integration
 
 SecretShield is designed to run inside your CI/CD pipeline. It will:
 1.  Scan every Pull Request.
@@ -134,14 +134,14 @@ A detailed dashboard showing severity breakdown and exact code locations.
 ### 2. CLI Output & Verification
 Real-time feedback in the terminal showing "Active" status for leaked keys.
 
-> ** <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
-**
+>  <img width="1221" height="272" alt="image" src="https://github.com/user-attachments/assets/c225a0e1-4632-4013-b3ba-8c9a8badb62e" />
+
 
 ### 3. CI/CD Integration (GitHub Summary)
 How results appear inside the GitHub Actions "Summary" tab.
 
-> **[Place a screenshot of the GitHub Actions Summary Table here]**
-> *Tip: This is critical for recruiters to see you understand DevOps workflows.*
+<img width="1885" height="884" alt="image" src="https://github.com/user-attachments/assets/cc014fc1-e173-478f-ac8d-56057ae3fd9a" />
+
 
 ---
 
