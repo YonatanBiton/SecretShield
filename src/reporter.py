@@ -152,9 +152,9 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
             .card {{ margin-bottom: 15px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
             
             /* Custom Severity Borders */
-            .severity-critical {{ border-left: 8px solid #dc3545; }} /* Red */
-            .severity-high {{ border-left: 8px solid #ffc107; }}      /* Yellow */
-            .severity-medium {{ border-left: 8px solid #fd7e14; }}    /* Orange */
+            .severity-critical {{ border-left: 8px solid #8B0000; }} /* bordo */
+            .severity-high {{ border-left: 8px solid #dc3545; }}      /* red */
+            .severity-medium {{ border-left: 8px solid #ffc107; }}    /* Orange */
             .severity-low {{ border-left: 8px solid #198754; }}       /* Green */
             
             /* Custom Colors */
@@ -164,6 +164,9 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
             .badge-type {{ font-size: 0.9em; margin-right: 10px; }}
             .stat-card {{ transition: transform 0.2s; }}
             .stat-card:hover {{ transform: translateY(-5px); }}
+            .bg-critical {{background-color: #8B0000 !important; color: white;}}
+            .text-critical {{color: #8B0000 !important;}}
+
         </style>
     </head>
     <body>
@@ -181,7 +184,7 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
 
             <div class="row row-cols-2 row-cols-md-5 g-4 mb-5">
                 <div class="col">
-                    <div class="card text-white bg-danger stat-card h-100">
+                    <div class="card text-white bg-critical stat-card h-100">
                         <div class="card-body text-center">
                             <h6 class="card-title text-uppercase">Critical</h6>
                             <h2 class="display-5 fw-bold">{critical_count}</h2>
@@ -189,7 +192,7 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card text-dark bg-warning stat-card h-100">
+                    <div class="card bg-danger text-white stat-card h-100">
                         <div class="card-body text-center">
                             <h6 class="card-title text-uppercase">High</h6>
                             <h2 class="display-5 fw-bold">{high_count}</h2>
@@ -197,7 +200,7 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card text-white bg-orange stat-card h-100">
+                    <div class="card bg-orange text-white stat-card h-100">
                         <div class="card-body text-center">
                             <h6 class="card-title text-uppercase">Medium</h6>
                             <h2 class="display-5 fw-bold">{medium_count}</h2>
@@ -205,7 +208,7 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card text-white bg-success stat-card h-100">
+                    <div class="card text-white  bg-success stat-card h-100">
                         <div class="card-body text-center">
                             <h6 class="card-title text-uppercase">Low</h6>
                             <h2 class="display-5 fw-bold">{low_count}</h2>
@@ -244,19 +247,19 @@ def generate_html_report(findings: List[Dict[str, Any]], target_dir: str = ".") 
             # Determine styling based on severity
             if sev == "CRITICAL": 
                 sev_class = "severity-critical"
-                badge_class = "bg-danger"
+                badge_class = "bg-critical"
             elif sev == "HIGH": 
                 sev_class = "severity-high"
-                badge_class = "bg-warning text-dark" # Yellow needs dark text
+                badge_class = "bg-danger " 
             elif sev == "MEDIUM": 
                 sev_class = "severity-medium"
-                badge_class = "bg-orange"
+                badge_class = "bg-orange "
             elif sev == "LOW": 
                 sev_class = "severity-low"
                 badge_class = "bg-success"
             else:
                 sev_class = "severity-medium"
-                badge_class = "bg-secondary"
+                badge_class = "bg-secondary "
 
             # Clean the message for HTML (convert Rich tags to spans)
             cleaned_message = clean_and_convert_markup(f['message'])
